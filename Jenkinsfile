@@ -4,31 +4,35 @@ pipeline {
     stages {
         stage('Checkout') {
              steps {
-                echo 'Step 1: Checkout stage executed.'
+                checkout scm
              }
         }
 
         stage('Install Dependencies') {
             steps {
                 echo "Step 2: Install Dependencies stage"
+                sleep 10
             }
         }
 
         stage('Lint') {
             steps {
                 echo "Step 3: Lint code"
+                sleep 10
             }
         }
 
         stage('Test') {
             steps {
                 echo "Step 4: Test the app"
+                sleep 10
             }
         }
 
         stage('Build') {
             steps {
                 echo "Step 5: Build app"
+                sleep 10
             }
         }
     }
