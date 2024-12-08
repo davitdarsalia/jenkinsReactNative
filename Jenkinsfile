@@ -18,9 +18,7 @@ pipeline {
             steps {
                 sh '''
                 # Use npm or yarn depending on your preference
-                npm install
-                # or
-                # yarn install
+                 yarn install
                 '''
             }
         }
