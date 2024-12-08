@@ -17,8 +17,8 @@ pipeline {
         stage('Install Dependencies') {
             steps {
                 sh '''
-                # Use npm or yarn depending on your preference
-                 yarn --version
+                cd $WORKSPACE # Jenkins automatically checks out the code here
+                yarn install
                 '''
             }
         }
