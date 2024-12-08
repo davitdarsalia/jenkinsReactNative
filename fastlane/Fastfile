@@ -1,0 +1,34 @@
+lane :incrementAndroidBuildNumber do
+  androidFilePath = '../android/app/build.gradle'
+  version_code = /versionCode\s+(\d+)/
+  version_number = /versionName\s+"\d+\.\d+\.(\d+)"/
+  s = File.read(androidFilePath)
+  versionCode = s[version_code, 1].to_i
+  s[version_code, 1] = (versionCode + 1).to_s
+
+  f = File.new(androidFilePath, 'w')
+  f.write(s)
+  f.close
+end
+
+lane :betaAndroid do
+  incrementAndroidBuildNumber()
+
+  gradle(
+    task: 'assemble',
+    build_type: 'Debug',
+    project_dir: "./android",
+  )
+
+  require 'fileutils'
+
+  output_dir = '../test-builds/android'
+
+  debug_apk_path = '../android/app/build/outputs/apk/debug/app-debug.apk' 
+
+  FileUtils.mkdir_p(output_dir)
+
+  FileUtils.cp(debug_apk_path, output_dir)
+
+  UI.message("Debug APK build completed successfully.")
+end

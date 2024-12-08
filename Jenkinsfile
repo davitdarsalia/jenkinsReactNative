@@ -1,49 +1,20 @@
 pipeline {
     agent any
-
     stages {
-        stage('Checkout') {
-             steps {
-                checkout scm
-             }
-        }
-
-        stage('Install Dependencies') {
+        stage('Checkout Repository') {
             steps {
-                echo "Step 2: Install Dependencies stage"
-                sleep 10
+               
+                git branch: 'main',  url: 'https://github.com/davitdarsalia/jenkinsReactNative.git'
             }
         }
-
-        stage('Lint') {
+        stage('Verify Code') {
             steps {
-                echo "Step 3: Lint code"
-                sleep 10
+              
+                sh '''
+                git branch
+                git log -1
+                '''
             }
-        }
-
-        stage('Test') {
-            steps {
-                echo "Step 4: Test the app"
-                sleep 10
-            }
-        }
-
-        stage('Build') {
-            steps {
-                echo "Step 5: Build app"
-                sleep 10
-            }
-        }
-    }
-
-    post {
-        success {
-            echo 'Pipeline completed successfully!'
-        }
-
-        failure {
-            echo 'Pipeline failed. Please check the logs.'
         }
     }
 }
