@@ -18,7 +18,7 @@ pipeline {
             steps {
                 sh '''
                 cd $WORKSPACE # Jenkins automatically checks out the code here
-                yarn install
+               npm i
                 '''
             }
         }
