@@ -1,26 +1,20 @@
 pipeline {
     agent any
+   
     stages {
         stage('Checkout Repository') {
             steps {
-                git branch: 'main', url: 'https://github.com/davitdarsalia/jenkinsReactNative.git'
+                echo "Hello"
             }
         }
-        stage('Verify Code') {
-            steps {
-                sh '''
-                git branch
-                git log -1
-                '''
-            }
+       
+    }
+    post {
+        success {
+            echo 'Build completed successfully!'
         }
-        stage('Install Dependencies') {
-            steps {
-                sh '''
-                cd $WORKSPACE # Jenkins automatically checks out the code here
-               npm i
-                '''
-            }
+        failure {
+            echo 'Build failed. Please check the logs.'
         }
     }
 }
