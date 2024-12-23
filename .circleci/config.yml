@@ -9,5 +9,17 @@ jobs:
       - restore_cache:
           key: dependency-cache-{{ checksum "yarn.lock" }}
       - run:
-          name: Install Dependencies
-          command: yarn
+          name: Restore npm cache
+          command: |
+          if [ -d node_modules]; then
+            echo "node_modules directory exists, restoring from cache."
+          else
+            echo "node_modules directory does not exist, skipping cache restore."
+          fi
+      - run:
+        name: Install Dependencies
+        command: yarn
+      - save_cache:
+        key: dependency-cache-{{ checksum "yarn.lock" }}
+        paths:
+          - node_modules
