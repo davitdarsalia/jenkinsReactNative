@@ -8,22 +8,49 @@ jobs:
       - checkout
 
       - restore_cache:
-          key: dependency-cache-{{ checksum "yarn.lock" }}
-
-      - run:
-          name: Restore npm cache
-          command: |
-            if [ -d node_modules ]; then
-              echo "node_modules directory exists, restoring from cache."
-            else
-              echo "node_modules directory does not exist, skipping cache restore."
-            fi
+          keys:
+            - dependency-cache-{{ checksum "yarn.lock" }}
+            - dependency-cache-
 
       - run:
           name: Install Dependencies
-          command: yarn
+          command: yarn install --frozen-lockfile --loglevel verbose
+
+      - run:
+          name: Install Dependencies
+          command: yarn install  --loglevel verbose
 
       - save_cache:
           key: dependency-cache-{{ checksum "yarn.lock" }}
           paths:
             - node_modules
+            - ~/.cache/yarn
+      - run:
+          name: Install Ruby and Bundler
+          command: |
+            sudo apt-get update
+            sudo apt-get install -y ruby-full build-essential
+            gem install bundler
+
+      - restore_cache:
+          keys:
+            - fastlane-gems-{{ checksum "Gemfile.lock" }}
+            - fastlane-gems-
+      - run:
+          name: Install Fastlane gems
+          command: |
+            bundle install .
+
+      - save_cache:
+          key: fastlane-gems-{{ checksum "Gemfile.lock" }}
+          paths:
+            - vendor/bundle
+      - run:
+          name: Run Fastlane betaAndroid
+          command: bundle exec fastlane betaAndroid
+
+workflows:
+  version: 2
+  build_and_deploy:
+    jobs:
+      - build
