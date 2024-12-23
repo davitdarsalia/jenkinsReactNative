@@ -10,7 +10,7 @@ jobs:
     steps:
       - checkout
 
-      # Install Java 17 if not installed
+      # Install Java 17
       - run:
           name: Install Java 17
           command: |
@@ -95,4 +95,8 @@ workflows:
   version: 2
   build_and_deploy:
     jobs:
-      - build
+      - build:
+          filters:
+            branches:
+              only:
+                - main
