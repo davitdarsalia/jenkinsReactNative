@@ -82,3 +82,4 @@ terraform.*
 .terraform.lock.hcl
 License.*
 terraform-provider-aws_v5.82.1_z5
+terraform-*
