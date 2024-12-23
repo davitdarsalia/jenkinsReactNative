@@ -8,10 +8,12 @@
     "lint": "eslint .",
     "start": "react-native start",
     "test": "jest",
-    "betaA": "fastlane betaAndroid"
+    "betaA": "fastlane betaAndroid",
+    "deps": "yarn && npx pod-install"
   },
   "dependencies": {
-    "react": "18.3.1",
+    "react": "^19.0.0",
+    "react-compiler-runtime": "^19.0.0-beta-b2e8e9c-20241220",
     "react-native": "0.76.3"
   },
   "devDependencies": {
@@ -25,10 +27,12 @@
     "@react-native/eslint-config": "0.76.3",
     "@react-native/metro-config": "0.76.3",
     "@react-native/typescript-config": "0.76.3",
-    "@types/react": "^18.2.6",
+    "@types/react": "^19.0.0",
     "@types/react-test-renderer": "^18.0.0",
     "babel-jest": "^29.6.3",
+    "babel-plugin-react-compiler": "^19.0.0-beta-b2e8e9c-20241220",
     "eslint": "^8.19.0",
+    "eslint-plugin-react-compiler": "^19.0.0-beta-b2e8e9c-20241220",
     "jest": "^29.6.3",
     "prettier": "2.8.8",
     "react-test-renderer": "18.3.1",
