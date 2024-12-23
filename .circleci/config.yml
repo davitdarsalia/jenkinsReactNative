@@ -1,4 +1,6 @@
 version: 2.1
+orbs:
+  android: circleci/android@3.0.2
 
 jobs:
   build:
@@ -8,7 +10,7 @@ jobs:
     steps:
       - checkout
 
-      # Install Java 17 if not installed
+      # Install Java 17
       - run:
           name: Install Java 17
           command: |
@@ -18,27 +20,14 @@ jobs:
             echo 'export PATH=$JAVA_HOME/bin:$PATH' >> $BASH_ENV
             source $BASH_ENV
 
-      # Install Android SDK
-      - run:
-          name: Install Android SDK
-          command: |
-            mkdir -p $HOME/android-sdk
-            cd $HOME/android-sdk
-            curl -o sdk-tools.zip https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
-            unzip sdk-tools.zip -d cmdline-tools
-            mv cmdline-tools/cmdline-tools cmdline-tools/latest
-            rm sdk-tools.zip
-            echo 'export ANDROID_HOME=$HOME/android-sdk' >> $BASH_ENV
-            echo 'export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH' >> $BASH_ENV
-            source $BASH_ENV
-            sdkmanager --licenses
-            sdkmanager "platform-tools" "platforms;android-33"
-
-      # Set local.properties for Android
-      - run:
-          name: Set Local Properties
-          command: |
-            echo "sdk.dir=$ANDROID_HOME" > android/local.properties
+      # Use the android orb for setup
+      - android/create_avd:
+          avd_name: myavd
+          install: true
+          system_image: system-images;android-33;google_apis;x86_64
+      - android/start_emulator:
+          avd_name: myavd
+          no_window: true
 
       # Restore npm (Yarn) cache
       - restore_cache:
