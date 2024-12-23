@@ -8,30 +8,48 @@ jobs:
     steps:
       - checkout
 
+      # Install Java 17 if not installed
       - run:
           name: Install Java 17
           command: |
+            if java -version &>/dev/null; then
+              echo "Java is already installed. Skipping the installation."
+            else
+              echo "Java not found. Installing Java 17..."
+              sudo apt-get update
+              sudo apt-get install -y openjdk-17-jdk
+              echo 'export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64' >> $BASH_ENV
+              echo 'export PATH=$JAVA_HOME/bin:$PATH' >> $BASH_ENV
+              source $BASH_ENV
+            fi
+
+      # Set ANDROID_HOME and install Android SDK
+      - run:
+          name: Install Android SDK
+          command: |
             sudo apt-get update
-            sudo apt-get install -y openjdk-17-jdk
-            echo 'export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64' >> $BASH_ENV
-            echo 'export PATH=$JAVA_HOME/bin:$PATH' >> $BASH_ENV
+            sudo apt-get install -y wget unzip
+            wget https://dl.google.com/android/repository/commandlinetools-linux-9123335_latest.zip -O cmdline-tools.zip
+            mkdir -p $HOME/android-sdk/cmdline-tools
+            unzip -qo cmdline-tools.zip -d $HOME/android-sdk/cmdline-tools
+            mv $HOME/android-sdk/cmdline-tools/cmdline-tools $HOME/android-sdk/cmdline-tools/latest
+            echo 'export ANDROID_HOME=$HOME/android-sdk' >> $BASH_ENV
+            echo 'export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH' >> $BASH_ENV
             source $BASH_ENV
+            yes | sdkmanager --licenses
+            sdkmanager "platform-tools" "platforms;android-31" "build-tools;31.0.0"
+
+      # Set local.properties for Android
+      - run:
+          name: Set Local Properties
+          command: |
+            echo "sdk.dir=$ANDROID_HOME" > android/local.properties
 
       # Restore npm (Yarn) cache
       - restore_cache:
           keys:
             - dependency-cache-{{ checksum "yarn.lock" }}
             - dependency-cache-
-
-      # (Optional) Informative step to check node_modules (can be removed if not needed)
-      - run:
-          name: Restore npm cache
-          command: |
-            if [ -d node_modules ]; then
-              echo "node_modules directory exists, restoring from cache."
-            else
-              echo "node_modules directory does not exist, skipping cache restore."
-            fi
 
       # Install Node.js dependencies
       - run:
@@ -49,7 +67,6 @@ jobs:
       - run:
           name: Install Ruby and Bundler
           command: |
-            sudo apt-get update
             sudo apt-get install -y ruby-full build-essential
             sudo gem install bundler
 
