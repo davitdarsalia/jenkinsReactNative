@@ -39,6 +39,12 @@ jobs:
             source $BASH_ENV
 
       - run:
+          name: Accept SDK Licenses and Install NDK
+          command: |
+            yes | sdkmanager --licenses
+            yes | sdkmanager "ndk;26.1.10909125"
+
+      - run:
           name: Set Local Properties
           command: |
             echo "sdk.dir=$ANDROID_HOME" > android/local.properties
