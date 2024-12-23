@@ -12,18 +12,27 @@ jobs:
       - run:
           name: Install Java 17
           command: |
-            if java -version &>/dev/null; then
-              echo "Java is already installed. Skipping the installation."
-            else
-              echo "Java not found. Installing Java 17..."
-              sudo apt-get update
-              sudo apt-get install -y openjdk-17-jdk
-              echo 'export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64' >> $BASH_ENV
-              echo 'export PATH=$JAVA_HOME/bin:$PATH' >> $BASH_ENV
-               echo 'export ANDROID_HOME=$HOME/android-sdk' >> $BASH_ENV
+            sudo apt-get update
+            sudo apt-get install -y openjdk-17-jdk
+            echo 'export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64' >> $BASH_ENV
+            echo 'export PATH=$JAVA_HOME/bin:$PATH' >> $BASH_ENV
+            source $BASH_ENV
+
+      # Install Android SDK
+      - run:
+          name: Install Android SDK
+          command: |
+            mkdir -p $HOME/android-sdk
+            cd $HOME/android-sdk
+            curl -o sdk-tools.zip https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
+            unzip sdk-tools.zip -d cmdline-tools
+            mv cmdline-tools/cmdline-tools cmdline-tools/latest
+            rm sdk-tools.zip
+            echo 'export ANDROID_HOME=$HOME/android-sdk' >> $BASH_ENV
             echo 'export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH' >> $BASH_ENV
-              source $BASH_ENV
-            fi
+            source $BASH_ENV
+            sdkmanager --licenses
+            sdkmanager "platform-tools" "platforms;android-33"
 
       # Set local.properties for Android
       - run:
