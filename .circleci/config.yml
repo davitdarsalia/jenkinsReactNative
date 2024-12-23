@@ -1,10 +1,7 @@
 version: 2.1
-orbs:
-  android: circleci/android@3.0.2
 
 jobs:
   build:
-    working_directory: ~/repo
     docker:
       - image: cimg/node:23.5.0
     steps:
@@ -20,65 +17,31 @@ jobs:
             echo 'export PATH=$JAVA_HOME/bin:$PATH' >> $BASH_ENV
             source $BASH_ENV
 
-      # Use the android orb for setup
-      - android/create_avd:
-          avd_name: myavd
-          install: true
-          system_image: system-images;android-33;google_apis;x86_64
-      - android/start_emulator:
-          avd_name: myavd
-          no_window: true
-
-      # Restore npm (Yarn) cache
-      - restore_cache:
-          keys:
-            - dependency-cache-{{ checksum "yarn.lock" }}
-            - dependency-cache-
-
-      # Install Node.js dependencies
+      # Android SDK Setup
       - run:
-          name: Install Dependencies
-          command: yarn install --frozen-lockfile
-
-      # Save npm cache
-      - save_cache:
-          key: dependency-cache-{{ checksum "yarn.lock" }}
-          paths:
-            - node_modules
-            - ~/.cache/yarn
-
-      # Install Ruby and Bundler
-      - run:
-          name: Install Ruby and Bundler
+          name: Download Android SDK
           command: |
-            sudo apt-get install -y ruby-full build-essential
-            sudo gem install bundler
+            cd ..
+            mkdir -p android-sdk
+            cd android-sdk
+            wget https://dl.google.com/android/repository/sdk-tools-linux-4333796.zip
+            unzip sdk-tools-linux-4333796.zip
 
-      # Restore Fastlane gems cache
-      - restore_cache:
-          keys:
-            - fastlane-gems-{{ checksum "Gemfile.lock" }}
-            - fastlane-gems-
-
-      # Install Fastlane gems into vendor/bundle
       - run:
-          name: Install Fastlane Gems
+          name: Set Environment Variables for Android SDK
           command: |
-            bundle install --path vendor/bundle
+            echo 'export ANDROID_HOME=$HOME/android-sdk' >> $BASH_ENV
+            echo 'export PATH=$PATH:$ANDROID_HOME/tools/bin' >> $BASH_ENV
+            echo 'export PATH=$PATH:$ANDROID_HOME/platform-tools' >> $BASH_ENV
+            source $BASH_ENV
 
-      # Save Fastlane gems cache
-      - save_cache:
-          key: fastlane-gems-{{ checksum "Gemfile.lock" }}
-          paths:
-            - vendor/bundle
-
-      # Run Fastlane for Android
       - run:
-          name: Run Fastlane betaAndroid
-          command: bundle exec fastlane betaAndroid
+          name: Accept SDK Licenses
+          command: |
+            yes | sdkmanager --licenses || exit 0
+            yes | sdkmanager --update || exit 0
 
-workflows:
-  version: 2
-  build_and_deploy:
-    jobs:
-      - build
+      # Build or Test Android Project
+      - run:
+          name: Build Android Project
+          command: ./gradlew build
