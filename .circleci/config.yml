@@ -6,20 +6,24 @@ jobs:
       - image: cimg/node:23.5.0
     steps:
       - checkout
+
       - restore_cache:
           key: dependency-cache-{{ checksum "yarn.lock" }}
+
       - run:
           name: Restore npm cache
           command: |
-          if [ -d node_modules]; then
-            echo "node_modules directory exists, restoring from cache."
-          else
-            echo "node_modules directory does not exist, skipping cache restore."
-          fi
+            if [ -d node_modules ]; then
+              echo "node_modules directory exists, restoring from cache."
+            else
+              echo "node_modules directory does not exist, skipping cache restore."
+            fi
+
       - run:
-        name: Install Dependencies
-        command: yarn
+          name: Install Dependencies
+          command: yarn
+
       - save_cache:
-        key: dependency-cache-{{ checksum "yarn.lock" }}
-        paths:
-          - node_modules
+          key: dependency-cache-{{ checksum "yarn.lock" }}
+          paths:
+            - node_modules
