@@ -20,24 +20,10 @@ jobs:
               sudo apt-get install -y openjdk-17-jdk
               echo 'export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64' >> $BASH_ENV
               echo 'export PATH=$JAVA_HOME/bin:$PATH' >> $BASH_ENV
+               echo 'export ANDROID_HOME=$HOME/android-sdk' >> $BASH_ENV
+            echo 'export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH' >> $BASH_ENV
               source $BASH_ENV
             fi
-
-      # Set ANDROID_HOME and install Android SDK
-      - run:
-          name: Install Android SDK
-          command: |
-            sudo apt-get update
-            sudo apt-get install -y wget unzip
-            wget https://dl.google.com/android/repository/commandlinetools-linux-9123335_latest.zip -O cmdline-tools.zip
-            mkdir -p $HOME/android-sdk/cmdline-tools
-            unzip -qo cmdline-tools.zip -d $HOME/android-sdk/cmdline-tools
-            mv $HOME/android-sdk/cmdline-tools/cmdline-tools $HOME/android-sdk/cmdline-tools/latest
-            echo 'export ANDROID_HOME=$HOME/android-sdk' >> $BASH_ENV
-            echo 'export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH' >> $BASH_ENV
-            source $BASH_ENV
-            yes | sdkmanager --licenses
-            sdkmanager "platform-tools" "platforms;android-31" "build-tools;31.0.0"
 
       # Set local.properties for Android
       - run:
