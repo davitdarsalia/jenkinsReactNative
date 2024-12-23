@@ -44,4 +44,4 @@ jobs:
       # Build or Test Android Project
       - run:
           name: Build Android Project
-          command: ./gradlew build
+          command: bundle exec fastlane betaAndroid
