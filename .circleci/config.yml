@@ -1,4 +1,5 @@
 version: 2.1
+
 jobs:
   build:
     working_directory: ~/repo
@@ -7,44 +8,61 @@ jobs:
     steps:
       - checkout
 
+      # Restore npm (Yarn) cache
       - restore_cache:
           keys:
             - dependency-cache-{{ checksum "yarn.lock" }}
             - dependency-cache-
 
+      # (Optional) Informative step to check node_modules (can be removed if not needed)
+      - run:
+          name: Restore npm cache
+          command: |
+            if [ -d node_modules ]; then
+              echo "node_modules directory exists, restoring from cache."
+            else
+              echo "node_modules directory does not exist, skipping cache restore."
+            fi
+
+      # Install Node.js dependencies
       - run:
           name: Install Dependencies
-          command: yarn install --frozen-lockfile --loglevel verbose
+          command: yarn install --frozen-lockfile
 
-      - run:
-          name: Install Dependencies
-          command: yarn install  --loglevel verbose
-
+      # Save npm cache
       - save_cache:
           key: dependency-cache-{{ checksum "yarn.lock" }}
           paths:
             - node_modules
             - ~/.cache/yarn
+
+      # Install Ruby and Bundler
       - run:
           name: Install Ruby and Bundler
           command: |
             sudo apt-get update
             sudo apt-get install -y ruby-full build-essential
-            gem install bundler
+            sudo gem install bundler
 
+      # Restore Fastlane gems cache
       - restore_cache:
           keys:
             - fastlane-gems-{{ checksum "Gemfile.lock" }}
             - fastlane-gems-
-      - run:
-          name: Install Fastlane gems
-          command: |
-            bundle install .
 
+      # Install Fastlane gems into vendor/bundle
+      - run:
+          name: Install Fastlane Gems
+          command: |
+            bundle install --path vendor/bundle
+
+      # Save Fastlane gems cache
       - save_cache:
           key: fastlane-gems-{{ checksum "Gemfile.lock" }}
           paths:
             - vendor/bundle
+
+      # Run Fastlane for Android
       - run:
           name: Run Fastlane betaAndroid
           command: bundle exec fastlane betaAndroid
