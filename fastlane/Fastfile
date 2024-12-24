@@ -32,3 +32,9 @@ lane :betaAndroid do
 
   UI.message("Debug APK build completed successfully.")
 end
+
+platform :ios do
+  before_all do
+    setup_circle_ci
+  end
+end

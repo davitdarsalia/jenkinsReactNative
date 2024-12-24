@@ -1,0 +1,109 @@
+version: 2.1
+orbs:
+  android: circleci/android@3.0.2
+
+jobs:
+  build:
+    working_directory: ~/repo
+    docker:
+      - image: cimg/node:23.5.0
+    steps:
+      - checkout
+
+      # Install Java 17
+      - run:
+          name: Install Java 17
+          command: |
+            sudo apt-get update
+            sudo apt-get install -y openjdk-17-jdk
+            echo 'export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64' >> $BASH_ENV
+            echo 'export PATH=$JAVA_HOME/bin:$PATH' >> $BASH_ENV
+            source $BASH_ENV
+
+      # Android SDK Setup
+      - run:
+          name: Download Android SDK
+          command: |
+            cd ..
+            mkdir -p android-sdk
+            cd android-sdk
+            wget https://dl.google.com/android/repository/sdk-tools-linux-4333796.zip
+            unzip sdk-tools-linux-4333796.zip
+      - run:
+          name: Accept sdk licenses
+          command: |
+            yes | sdkmanager --licenses || exit 0
+            yes | sdkmanager --update || exit 0
+
+      - run:
+          name: Set Environment Variables for Android SDK
+          command: |
+            echo 'export ANDROID_HOME=$HOME/android-sdk' >> $BASH_ENV
+            echo 'export PATH=$PATH:$ANDROID_HOME/tools/bin' >> $BASH_ENV
+            echo 'export PATH=$PATH:$ANDROID_HOME/platform-tools' >> $BASH_ENV
+            source $BASH_ENV
+
+      - run:
+          name: Accept SDK Licenses and Install NDK
+          command: |
+            yes | sdkmanager --licenses
+            yes | sdkmanager "ndk;26.1.10909125"
+
+      - run:
+          name: Set Local Properties
+          command: |
+            echo "sdk.dir=$ANDROID_HOME" > android/local.properties
+
+      # Restore npm (Yarn) cache
+      - restore_cache:
+          keys:
+            - dependency-cache-{{ checksum "yarn.lock" }}
+            - dependency-cache-
+
+      # Install Node.js dependencies
+      - run:
+          name: Install Dependencies
+          command: yarn install --frozen-lockfile
+
+      # Save npm cache
+      - save_cache:
+          key: dependency-cache-{{ checksum "yarn.lock" }}
+          paths:
+            - node_modules
+            - ~/.cache/yarn
+
+      # Install Ruby and Bundler
+      - run:
+          name: Install Ruby and Bundler
+          command: |
+            sudo apt-get install -y ruby-full build-essential
+            sudo gem install bundler
+
+      # Restore Fastlane gems cache
+      - restore_cache:
+          keys:
+            - fastlane-gems-{{ checksum "Gemfile.lock" }}
+            - fastlane-gems-
+
+      # Install Fastlane gems into vendor/bundle
+      - run:
+          name: Install Fastlane Gems
+          command: |
+            bundle install --path vendor/bundle
+
+      # Save Fastlane gems cache
+      - save_cache:
+          key: fastlane-gems-{{ checksum "Gemfile.lock" }}
+          paths:
+            - vendor/bundle
+
+      # Run Fastlane for Android
+      - run:
+          name: Run Fastlane betaAndroid
+          command: bundle exec fastlane betaAndroid
+
+workflows:
+  version: 2
+  build_and_deploy:
+    jobs:
+      - build
